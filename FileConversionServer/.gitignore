@@ -3,6 +3,9 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# uploaded and converted files folder
+temp
+
 # dotenv files
 .env
 
