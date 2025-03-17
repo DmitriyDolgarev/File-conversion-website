@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-fc-orange: oklch(0.6547 0.205 30.75978472307827);
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+
+  
+}
+
+
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
