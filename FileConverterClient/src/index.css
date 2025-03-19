@@ -2,6 +2,9 @@
 
 @theme {
   --color-fc-orange: oklch(0.6547 0.205 30.75978472307827);
+  --color-fc-light-gray: oklch(0.9702 0 0);
+  --color-fc-gray: oklch(0.6201 0 0);
+  --color-fc-dark-gray: oklch(0.4204 0.0053 17.37);
 }
 
 :root {
