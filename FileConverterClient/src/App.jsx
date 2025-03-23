@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import './App.css'
 import axios from 'axios'
+import conversionConfig from '../conversionConfig';
 
 function App() {
 
   const [files, setFiles] = useState([]);
-  const [selectedOption, setSelectedOption] = useState("");
+  const [selectedOption, setSelectedOption] = useState(null);
+
 
   const handlerChange = (e) => {
     e.preventDefault();
@@ -14,13 +16,24 @@ function App() {
     }
   }
 
+
   const sendFiles = async (e) =>{
-    const response = await axios.post(`/api/pdf/split`,
-      {
-        "pdfFile": files[0], 
-        "pageSplitFrom": 2
-        
-      },
+
+    const requestBody =  {}
+
+    if (selectedOption.isArray){
+      requestBody.files = files
+    }
+    else{
+      requestBody.file = files[0]
+    }
+
+    selectedOption.additionalParams.forEach(param => {
+      requestBody[param.property] = 2
+    });
+
+    const response = await axios.post(`/api/${selectedOption.api}`,
+      requestBody,
       {
         headers:{
           'Content-Type': 'multipart/form-data'
@@ -84,17 +97,19 @@ function App() {
 
         <div className="p-4">
         <div className="space-y-2">
-          {["pdfToWord", "images/pngToJpg", "wordToPdf", "jpgToPng", "jpgToPdf", "pngToJpg", "pptxToPdf", "merge", "split"].map((option) => (
-            <label key={option} className="flex items-center space-x-2 cursor-pointer ">
+          {conversionConfig.jpg.map((option) => (
+            <label key={option.conversionType} className="flex items-center space-x-2 cursor-pointer ">
               <input
                 type="radio"
                 name="options"
-                value={option}
-                checked={selectedOption === option}
-                onChange={(e) => setSelectedOption(e.target.value)}
+                value={option.conversionType}
+                checked={selectedOption?.conversionType === option.conversionType}
+                onChange={() => {
+                  setSelectedOption(option)
+                }}
                 className="accent-fc-dark-gray"
               />
-              <span className="text-fc-gray">{option}</span>
+              <span className="text-fc-gray">{option.conversionType}</span>
             </label>
           ))}
         </div>
