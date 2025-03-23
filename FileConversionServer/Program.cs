@@ -5,6 +5,7 @@ using FileConverterLib.LibreOffice;
 using System.IO.Compression;
 using FileConverterLib.MSOffice;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Antiforgery;
 
 namespace FileConversionServer
 {
@@ -24,6 +25,8 @@ namespace FileConversionServer
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+            //builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -37,7 +40,8 @@ namespace FileConversionServer
             }
 
             app.UseHttpsRedirection();
-            app.UseAuthorization();
+            app.UseAuthorization(); // можно выключить
+            //app.UseAntiforgery();
 
             LibreOfficeConverter.sofficePath = sofficePath;
 
@@ -48,22 +52,29 @@ namespace FileConversionServer
             // Clear files dir
             foreach(var dir in Directory.GetDirectories(filesDir))
                 Directory.Delete(dir, true);
-            
+
+            //app.MapGet("api/antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
+            //{
+            //    var tokens = forgeryService.GetAndStoreTokens(context);
+            //    var xsrfToken = tokens.RequestToken!;
+            //    return TypedResults.Content(xsrfToken, "text/plain");
+            //});
+
             // Images
-            app.MapPost("/api/images/pngToJpg", async (IFormFileCollection pngFiles) => 
+            app.MapPost("/api/images/pngToJpg", async (IFormFileCollection files) => 
             {
-                return await ConvertFiles(pngFiles, "PngToJpg");
-            }).DisableAntiforgery().WithTags("Images");
-            app.MapPost("/api/images/jpgToPng", async (IFormFileCollection jpgFiles) => 
+                return await ConvertFiles(files, "PngToJpg");
+            }).WithTags("Images");
+            app.MapPost("/api/images/jpgToPng", async (IFormFileCollection files) => 
             {
-                return await ConvertFiles(jpgFiles, "JpgToPng");
+                return await ConvertFiles(files, "JpgToPng");
             }).DisableAntiforgery().WithTags("Images");
 
             // PDF
-            app.MapPost("/api/pdf/merge", async (IFormFileCollection pdfFiles) =>
+            app.MapPost("/api/pdf/merge", async (IFormFileCollection files) =>
             {
                 // Check extension
-                foreach (var file in pdfFiles)
+                foreach (var file in files)
                 {
                     if (Path.GetExtension(file.FileName).ToLower() != ".pdf")
                         return Results.BadRequest();
@@ -72,7 +83,7 @@ namespace FileConversionServer
                 // Load files to request directory
                 string requestDir = Path.Combine(filesDir, CurrentDateTime);
                 Directory.CreateDirectory(requestDir);
-                var filePaths = await LoadFilesToDirAsync(requestDir, pdfFiles);
+                var filePaths = await LoadFilesToDirAsync(requestDir, files);
 
                 // Merge
                 var outputFileName = Path.Combine(requestDir, "result.pdf");
@@ -82,16 +93,16 @@ namespace FileConversionServer
                 return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFileName));
 
             }).DisableAntiforgery().WithTags("PDF");
-            app.MapPost("/api/pdf/split", async ([FromBody] SplitPdfRequestData data) =>
+            app.MapPost("/api/pdf/split", async ([FromForm] SplitPdfRequestData data) =>
             {
                 // Check extension
-                if (Path.GetExtension(data.PdfFile.FileName).ToLower() != ".pdf")
+                if (Path.GetExtension(data.File.FileName).ToLower() != ".pdf")
                     return Results.BadRequest();
 
                 // Load files to request directory
                 string requestDir = Path.Combine(filesDir, CurrentDateTime);
                 Directory.CreateDirectory(requestDir);
-                var filePath = await LoadFileToDirAsync(requestDir, data.PdfFile);
+                var filePath = await LoadFileToDirAsync(requestDir, data.File);
 
                 // Split
                 var outputFileName1 = Path.Combine(requestDir, "file1.pdf");
@@ -104,16 +115,16 @@ namespace FileConversionServer
                 var outputFileBytes = await File.ReadAllBytesAsync(outputFilePath);
                 return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
             }).DisableAntiforgery().WithTags("PDF");
-            app.MapPost("/api/pdf/pdfToJpg", async (IFormFile pdfFile) =>
+            app.MapPost("/api/pdf/pdfToJpg", async (IFormFile file) =>
             {
                 // Check extension
-                if (Path.GetExtension(pdfFile.FileName).ToLower() != ".pdf")
+                if (Path.GetExtension(file.FileName).ToLower() != ".pdf")
                     return Results.BadRequest();
 
                 // Load files to request directory
                 string requestDir = Path.Combine(filesDir, CurrentDateTime);
                 Directory.CreateDirectory(requestDir);
-                var filePath = await LoadFileToDirAsync(requestDir, pdfFile);
+                var filePath = await LoadFileToDirAsync(requestDir, file);
 
                 // Convert
                 var outputFilePath = Path.Combine(requestDir, "result.zip");
@@ -122,10 +133,10 @@ namespace FileConversionServer
                 var outputFileBytes = await File.ReadAllBytesAsync(outputFilePath);
                 return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
             }).DisableAntiforgery().WithTags("PDF");
-            app.MapPost("/api/pdf/jpgToPdf", async (IFormFileCollection jpgFiles) =>
+            app.MapPost("/api/pdf/jpgToPdf", async (IFormFileCollection files) =>
             {
                 // Check extension
-                foreach (var file in jpgFiles)
+                foreach (var file in files)
                 {
                     if (Path.GetExtension(file.FileName).ToLower() != ".jpg" && Path.GetExtension(file.FileName).ToLower() != ".jpeg")
                         return Results.BadRequest();
@@ -134,7 +145,7 @@ namespace FileConversionServer
                 // Load files to request directory
                 string requestDir = Path.Combine(filesDir, CurrentDateTime);
                 Directory.CreateDirectory(requestDir);
-                var filePaths = await LoadFilesToDirAsync(requestDir, jpgFiles);
+                var filePaths = await LoadFilesToDirAsync(requestDir, files);
 
                 // Convert
                 var outputFilePath = Path.Combine(requestDir, "result.pdf");
@@ -145,17 +156,17 @@ namespace FileConversionServer
             }).DisableAntiforgery().WithTags("PDF");
             
             // Office
-            app.MapPost("/api/office/wordToPdf", async (string officeConverter, IFormFileCollection wordFiles) =>
+            app.MapPost("/api/office/wordToPdf", async (string officeConverter, IFormFileCollection files) =>
             {
-                await ConvertFiles(wordFiles, "wordToPdf", officeConverter);
+                await ConvertFiles(files, "wordToPdf", officeConverter);
             }).DisableAntiforgery().WithTags("Office");
-            app.MapPost("/api/office/pdfToWord", async (string officeConverter, IFormFileCollection pdfFiles) =>
+            app.MapPost("/api/office/pdfToWord", async (string officeConverter, IFormFileCollection files) =>
             {
-                await ConvertFiles(pdfFiles, "pdfToWord", officeConverter);
+                await ConvertFiles(files, "pdfToWord", officeConverter);
             }).DisableAntiforgery().WithTags("Office");
-            app.MapPost("/api/office/pptxToPdf", async (string officeConverter, IFormFileCollection pptxFiles) =>
+            app.MapPost("/api/office/pptxToPdf", async (string officeConverter, IFormFileCollection files) =>
             {
-                await ConvertFiles(pptxFiles, "pptxToPdf", officeConverter);
+                await ConvertFiles(files, "pptxToPdf", officeConverter);
             }).DisableAntiforgery().WithTags("Office");
 
             app.Run();
@@ -237,7 +248,7 @@ namespace FileConversionServer
                     else if (officeConverter.ToLower() == "libreoffice")
                         Convert = LibreOfficeConverter.PdfFileToDocxFile;
                     inputExtensions.Add(".pdf");
-                    outputExtension = ".word";
+                    outputExtension = ".docx";
                     break;
                 case "pptxToPdf":
                     if (officeConverter.ToLower() == "msoffice")
@@ -289,12 +300,12 @@ namespace FileConversionServer
     public class SplitPdfRequestData
     {
         public int PageSplitFrom { get; set; }
-        public IFormFile PdfFile { get; set; }
+        public IFormFile File { get; set; }
 
         public SplitPdfRequestData(int pageSplitFrom, IFormFile pdfFile)
         {
             PageSplitFrom = pageSplitFrom;
-            PdfFile = pdfFile;
+            File = pdfFile;
         }
     }
 }
