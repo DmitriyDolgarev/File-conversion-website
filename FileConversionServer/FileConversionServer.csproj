@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FileConverterLib.Images" Version="1.0.0" />
+    <PackageReference Include="FileConverterLib.LibreOffice" Version="1.0.0" />
+    <PackageReference Include="FileConverterLib.MSOffice" Version="1.0.0" />
+    <PackageReference Include="FileConverterLib.PDF" Version="1.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="7.3.1" />
+  </ItemGroup>
+
+</Project>
