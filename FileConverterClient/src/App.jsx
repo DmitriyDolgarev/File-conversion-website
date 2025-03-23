@@ -1,15 +1,51 @@
 import { useState } from 'react'
 import './App.css'
+import axios from 'axios'
 
 function App() {
 
   const [files, setFiles] = useState([]);
+  const [selectedOption, setSelectedOption] = useState("");
 
   const handlerChange = (e) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]){
       setFiles([...e.target.files])
     }
+  }
+
+  const sendFiles = async (e) =>{
+    const response = await axios.post(`/api/pdf/split`,
+      {
+        "pdfFile": files[0], 
+        "pageSplitFrom": 2
+        
+      },
+      {
+        headers:{
+          'Content-Type': 'multipart/form-data'
+        },
+        responseType: "blob",
+      }) 
+
+      const disposition = response.headers["content-disposition"];
+      let fileName = "downloaded-file";
+      if (disposition && disposition.indexOf("attachment") !== -1) {
+        const matches = disposition.match("filename=(.+);");
+        console.log(matches)
+        if (matches != null && matches[1]) {
+          fileName = matches[1];
+        }
+      }
+      
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
   }
 
   return (
@@ -32,7 +68,7 @@ function App() {
         </form>
       </div>
       <div className='flex-2/5 text-fc-gray my-auto ml-20 text-lg'>
-      <ul className='list-disc'>
+        <ul className='list-disc hidden'>
               File Converter предоставляет<br/>
               возможность  конвертации:
           <li className='ml-7'>pdf в word и jpg</li>
@@ -41,11 +77,29 @@ function App() {
           <li className='ml-7'>png в jpg</li> 
           <li className='ml-7'>PowerPoint в pdf</li> 
         </ul>
-        <ul className='list-disc'>А так же:
+        <ul className='list-disc hidden'>А так же:
           <li className='ml-7'>Объединение pdf</li>
           <li className='ml-7'>Разделение pdf</li>
         </ul> 
-        <button className='bg-fc-gray rounded-lg text-white w-55 h-13 mx-5 my-10 font-bold text-lg'>Конвертировать</button>
+
+        <div className="p-4">
+        <div className="space-y-2">
+          {["pdfToWord", "images/pngToJpg", "wordToPdf", "jpgToPng", "jpgToPdf", "pngToJpg", "pptxToPdf", "merge", "split"].map((option) => (
+            <label key={option} className="flex items-center space-x-2 cursor-pointer ">
+              <input
+                type="radio"
+                name="options"
+                value={option}
+                checked={selectedOption === option}
+                onChange={(e) => setSelectedOption(e.target.value)}
+                className="accent-fc-dark-gray"
+              />
+              <span className="text-fc-gray">{option}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+      <button onClick={sendFiles} className='bg-fc-orange rounded-lg hover:bg-fc-orange/80 text-white w-55 h-13 mx-5 my-10 font-bold text-lg'>Конвертировать</button>
       </div>
     </div>
     </>      
