@@ -1,7 +1,7 @@
 const conversionConfig = {
     "png":[
         {
-            "conversionType": "png",
+            "conversionType": "jpg",
             "api": "images/pngToJpg",
             "isArray": true,
             "additionalParams": []
@@ -39,13 +39,10 @@ const conversionConfig = {
                 
         },
         {
-            "merge":
-            {
-                "conversionType": "merge",
-                "api": "pdf/merge",
-                "isArray": true,
-                "additionalParams": []
-            }
+            "conversionType": "merge",
+            "api": "pdf/merge",
+            "isArray": true,
+            "additionalParams": []
         },
         {
             "conversionType": "split",
