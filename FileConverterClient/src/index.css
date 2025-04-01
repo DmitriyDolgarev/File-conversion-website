@@ -5,6 +5,7 @@
   --color-fc-light-gray: oklch(0.9702 0 0);
   --color-fc-gray: oklch(0.6201 0 0);
   --color-fc-dark-gray: oklch(0.4204 0.0053 17.37);
+  --color-fc-border-gray: oklch(0.89 0 0);
 }
 
 :root {
@@ -21,4 +22,3 @@ body {
   margin: 0;
   padding: 0;
 }
-

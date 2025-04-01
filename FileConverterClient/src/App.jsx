@@ -3,6 +3,7 @@ import './App.css'
 import axios from 'axios'
 import conversionConfig from '../conversionConfig';
 
+
 function App() {
 
   const [files, setFiles] = useState([]);
@@ -46,9 +47,8 @@ function App() {
       let fileName = "downloaded-file";
       if (disposition && disposition.indexOf("attachment") !== -1) {
         const matches = disposition.match("filename=(.+);");
-        console.log(matches)
         if (matches != null && matches[1]) {
-          fileName = matches[1];
+          fileName = matches[1].replace("\"","");
         }
       }
       
@@ -65,7 +65,7 @@ function App() {
   return (
     <>
     <header className='bg-fc-orange text-white h-20 text-4xl font-bold py-4 pl-16'>
-      File Converter 
+      File Converter
     </header>
       <div className='flex flex-row my-20'>
       <div className=' flex-3/5 bg-fc-light-gray rounded-xl p-5 h-120 mx-20'>
@@ -99,21 +99,27 @@ function App() {
         </div>
         {files.length>0 ? 
           <div className='space-y-2 p-4'>
+            <select 
+              className='w-xs p-3 border border-fc-border-gray rounded-lg text-black bg-fc-light-gray
+              focus:outline-none focus:ring-2 focus:ring-fc-border-gray focus:border-transparent
+              transition-all duration-200 shadow-sm hover:shadow-m'
+              value={selectedOption?.conversionType || ""}
+              onChange={(e) => {
+                const selected = conversionConfig[files[0].name.split('.').pop()]
+                  .find(option => option.conversionType === e.target.value);
+                setSelectedOption(selected);
+              }}
+            >
+            <option value="">Выберите вариант</option>
             {conversionConfig[files[0].name.split('.').pop()].map((option) => (
-              <label key={option.conversionType} className="flex items-center space-x-2 cursor-pointer ">
-                <input
-                  type="radio"
-                  name="options"
-                  value={option.conversionType}
-                  checked={selectedOption?.conversionType === option.conversionType}
-                  onChange={() => {
-                    setSelectedOption(option)
-                  }}
-                  className="accent-fc-dark-gray"
-                />
-                <span className="text-fc-gray">{option.conversionType}</span>
-              </label>
+              <option
+                key={option.conversionType} 
+                value={option.conversionType}
+              >
+                {option.conversionType}
+              </option>
             ))}
+            </select>
           </div> 
         : ""
         }
