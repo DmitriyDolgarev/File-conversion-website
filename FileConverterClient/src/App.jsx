@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import axios from 'axios'
 import conversionConfig from '../conversionConfig';
-
+import Select from "react-select"
 
 function App() {
 
@@ -47,8 +47,9 @@ function App() {
       let fileName = "downloaded-file";
       if (disposition && disposition.indexOf("attachment") !== -1) {
         const matches = disposition.match("filename=(.+);");
+        console.log(matches)
         if (matches != null && matches[1]) {
-          fileName = matches[1].replace("\"","");
+          fileName = matches[1].replaceAll("\"","");
         }
       }
       
@@ -99,32 +100,74 @@ function App() {
         </div>
         {files.length>0 ? 
           <div className='space-y-2 p-4'>
-            <select 
-              className='w-xs p-3 border border-fc-border-gray rounded-lg text-black bg-fc-light-gray
-              focus:outline-none focus:ring-2 focus:ring-fc-border-gray focus:border-transparent
-              transition-all duration-200 shadow-sm hover:shadow-m'
-              value={selectedOption?.conversionType || ""}
-              onChange={(e) => {
-                const selected = conversionConfig[files[0].name.split('.').pop()]
-                  .find(option => option.conversionType === e.target.value);
-                setSelectedOption(selected);
-              }}
-            >
-            <option value="">Выберите вариант</option>
-            {conversionConfig[files[0].name.split('.').pop()].map((option) => (
-              <option
-                key={option.conversionType} 
-                value={option.conversionType}
-              >
-                {option.conversionType}
-              </option>
-            ))}
-            </select>
+              <Select
+                className="w-xs border border-fc-border-gray rounded-lg text-black bg-fc-light-gray shadow-sm hover:shadow-m"
+                classNamePrefix="select"
+                placeholder="Выберите вариант"
+                value={selectedOption ? { 
+                  value: selectedOption.conversionType, 
+                  label: selectedOption.conversionType 
+                } : null}
+                onChange={(selected) => {
+                  const selectedOption = conversionConfig[files[0].name.split('.').pop()]
+                    .find(option => option.conversionType === selected.value);
+                  setSelectedOption(selectedOption);
+                }}
+                options={conversionConfig[files[0].name.split('.').pop()].map(option => ({
+                  value: option.conversionType,
+                  label: option.conversionType
+                }))}
+                styles={{
+                  dropdownIndicator: (provided, state) => ({
+                    ...provided,
+                    color: '#868686',
+                    svg: {
+                      width: "30px", 
+                      height: "30px",
+                    },
+                    transition: "transform 0.1s ease",
+                    transform: state.selectProps.menuIsOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    '&:hover': {
+                      color: '#868686',
+                    },
+                  }),
+                  control: (provided) => ({
+                    ...provided,
+                    padding: '0.5rem',
+                    minHeight: 'auto',
+                    '&:hover': {
+                      boxShadow: '0 0 0 2px rgba(0, 0, 0, 0.1)',
+                    },
+                  }),
+                  menu: (provided) => ({
+                    ...provided,
+                    borderRadius: '0.5rem',
+                    marginTop: '0.25rem',
+                  }),
+                  option: (provided, state) => ({
+                    ...provided,
+                    backgroundColor: state.isFocused ? '#f3f4f6' : 'white',
+                    color: 'black',
+                    '&:active': {
+                      backgroundColor: '#e5e7eb',
+                    },
+                  }),
+                }}
+                theme={(theme) => ({
+                  ...theme,
+                  colors: {
+                    ...theme.colors,
+                    primary: '#e5e7eb', // focus border color
+                    primary25: '#f3f4f6', // option hover color
+                    primary50: '#e5e7eb', // option active color
+                  },
+                })}
+              />
           </div> 
         : ""
         }
         
-      <button onClick={sendFiles} className='bg-fc-orange rounded-lg hover:bg-fc-orange/80 text-white w-55 h-13 mx-5 my-10 font-bold text-lg'>Конвертировать</button>
+      <button onClick={sendFiles} className='cursor-pointer bg-fc-orange rounded-lg hover:bg-fc-orange/80 text-white w-55 h-13 mx-5 my-10 font-bold text-lg'>Конвертировать</button>
       </div>
     </div>
     </>      
