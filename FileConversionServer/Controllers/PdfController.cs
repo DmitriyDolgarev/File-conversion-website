@@ -30,7 +30,7 @@ namespace FileConversionServer.Controllers
 
             // Merge
             var outputFileName = Path.Combine(requestDir, "result.pdf");
-            await Task.Run(() => PDFConverter.MergePDFs(filePaths.ToArray(), outputFileName));
+            PdfConverter.MergePdfFiles(filePaths.ToArray(), outputFileName);
 
             var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFileName);
             await FileConvertedMessageWriteAsync(requestDir);
@@ -51,17 +51,13 @@ namespace FileConversionServer.Controllers
             var filePath = await LoadFileToDirAsync(requestDir, data.File);
 
             // Split
-            var outputFileName1 = Path.Combine(requestDir, "file1.pdf");
-            var outputFileName2 = Path.Combine(requestDir, "file2.pdf");
-            await Task.Run(() => PDFConverter.SplitPDF(filePath, data.PageSplitFrom, outputFileName1, outputFileName2));
+            var outputFileName = Path.Combine(requestDir, "result.pdf");
+            PdfConverter.SplitPdfFile(filePath, data.SplitString, outputFileName);
 
-            // Put in zip
-            var outputFilePath = await FilesToZip(requestDir, new List<string> { outputFileName1, outputFileName2 });
-
-            var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
+            var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFileName);
             await FileConvertedMessageWriteAsync(requestDir);
 
-            return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
+            return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFileName));
         }
 
         [HttpPost("pdfToJpg")]
@@ -78,7 +74,7 @@ namespace FileConversionServer.Controllers
 
             // Convert
             var outputFilePath = Path.Combine(requestDir, "result.zip");
-            await Task.Run(() => PDFConverter.PdfFileToJpgFiles(filePath, outputFilePath, true));
+            PdfConverter.PdfFileToJpgFiles(filePath, outputFilePath, true);
 
             var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
             await FileConvertedMessageWriteAsync(requestDir);
@@ -103,7 +99,7 @@ namespace FileConversionServer.Controllers
 
             // Convert
             var outputFilePath = Path.Combine(requestDir, "result.pdf");
-            await Task.Run(() => PDFConverter.JpgFilesToPdfFile(filePaths.ToArray(), outputFilePath));
+            PdfConverter.JpgFilesToPdfFile(filePaths.ToArray(), outputFilePath);
 
             var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
             await FileConvertedMessageWriteAsync(requestDir);
@@ -113,7 +109,7 @@ namespace FileConversionServer.Controllers
         
         public class SplitPdfRequestData
         {
-            public int PageSplitFrom { get; set; }
+            public string SplitString { get; set; }
             public IFormFile File { get; set; }
         }
     }
