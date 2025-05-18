@@ -16,95 +16,55 @@ namespace FileConversionServer.Controllers
         [HttpPost("merge")]
         public async Task<IResult> Merge(IFormFileCollection files)
         {
-            // Check extension
-            foreach (var file in files)
-            {
-                if (Path.GetExtension(file.FileName).ToLower() != ".pdf")
-                    return Results.BadRequest();
-            }
+            if (!IsCorrectExtension(files, [".pdf"]))
+                return Results.BadRequest("Wrong extension");
 
-            // Load files to request directory
-            string requestDir = Path.Combine(filesDir, CurrentDateTime);
-            Directory.CreateDirectory(requestDir);
-            var filePaths = await LoadFilesToDirAsync(requestDir, files);
+            var inputBytes = await FormFileCollectionToBytesAsync(files);
+            var outputBytes = await PdfConverter.MergePdfBytesAsync(inputBytes);
 
-            // Merge
-            var outputFileName = Path.Combine(requestDir, "result.pdf");
-            PdfConverter.MergePdfFiles(filePaths.ToArray(), outputFileName);
-
-            var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFileName);
-            await FileConvertedMessageWriteAsync(requestDir);
-
-            return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFileName));
+            return Results.File(outputBytes, "application/octet-stream", "result.pdf");
         }
 
         [HttpPost("split")]
         public async Task<IResult> Split([FromForm] SplitPdfRequestData data)
         {
-            // Check extension
-            if (Path.GetExtension(data.File.FileName).ToLower() != ".pdf")
-                return Results.BadRequest();
+            if (!IsCorrectExtension(data.File, [".pdf"]))
+                return Results.BadRequest("Wrong extension");
 
-            // Load files to request directory
-            string requestDir = Path.Combine(filesDir, CurrentDateTime);
-            Directory.CreateDirectory(requestDir);
-            var filePath = await LoadFileToDirAsync(requestDir, data.File);
-
-            // Split
-            var outputFileName = Path.Combine(requestDir, "result.pdf");
-            PdfConverter.SplitPdfFile(filePath, data.SplitString, outputFileName);
-
-            var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFileName);
-            await FileConvertedMessageWriteAsync(requestDir);
-
-            return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFileName));
+            var inputBytes = await FormFileToBytesAsync(data.File);
+            try
+            {
+                var outputBytes = await PdfConverter.SplitPdfBytesAsync(inputBytes, data.SplitString);
+                return Results.File(outputBytes, "application/octet-stream", "result.pdf");
+            }
+            catch(ArgumentException e)
+            {
+                return Results.BadRequest(e.Message);
+            }
         }
 
         [HttpPost("pdfToJpg")]
-        public async Task<IResult> PfgToJpg(IFormFile file)
+        public async Task<IResult> PdfToJpg(IFormFile file)
         {
-            // Check extension
-            if (Path.GetExtension(file.FileName).ToLower() != ".pdf")
-                return Results.BadRequest();
+            if (!IsCorrectExtension(file, [".pdf"]))
+                return Results.BadRequest("Wrong extension");
 
-            // Load files to request directory
-            string requestDir = Path.Combine(filesDir, CurrentDateTime);
-            Directory.CreateDirectory(requestDir);
-            var filePath = await LoadFileToDirAsync(requestDir, file);
+            var inputBytes = await FormFileToBytesAsync(file);
+            var outputBytes = await PdfConverter.PdfBytesToJpgBytesZipAsync(inputBytes);
 
-            // Convert
-            var outputFilePath = Path.Combine(requestDir, "result.zip");
-            PdfConverter.PdfFileToJpgFiles(filePath, outputFilePath, true);
-
-            var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
-            await FileConvertedMessageWriteAsync(requestDir);
-
-            return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
+            return Results.File(outputBytes, "application/octet-stream", "result.zip");
         }
 
         [HttpPost("jpgToPdf")]
         public async Task<IResult> JpgToPdf(IFormFileCollection files)
         {
-            // Check extension
-            foreach (var file in files)
-            {
-                if (Path.GetExtension(file.FileName).ToLower() != ".jpg" && Path.GetExtension(file.FileName).ToLower() != ".jpeg")
-                    return Results.BadRequest();
-            }
+            if (!IsCorrectExtension(files, [".pdf"]))
+                return Results.BadRequest("Wrong extension");
 
-            // Load files to request directory
-            string requestDir = Path.Combine(filesDir, CurrentDateTime);
-            Directory.CreateDirectory(requestDir);
-            var filePaths = await LoadFilesToDirAsync(requestDir, files);
+            var inputBytes = await FormFileCollectionToBytesAsync(files);
+            var outputBytes = await PdfConverter.JpgBytesToPdfBytesAsync(inputBytes);
 
-            // Convert
-            var outputFilePath = Path.Combine(requestDir, "result.pdf");
-            PdfConverter.JpgFilesToPdfFile(filePaths.ToArray(), outputFilePath);
-
-            var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
-            await FileConvertedMessageWriteAsync(requestDir);
-
-            return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
+            return Results.File(outputBytes, "application/octet-stream", "result.pdf");
         }
         
         public class SplitPdfRequestData

@@ -3,8 +3,6 @@ using FileConverterLib.Images;
 using FileConverterLib.LibreOffice;
 using FileConverterLib.MSOffice;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
-using System.Collections;
 using System.IO.Compression;
 using System.Threading.Channels;
 
@@ -17,6 +15,12 @@ namespace FileConversionServer.Controllers
         protected readonly string filesDir = Path.Combine(Directory.GetCurrentDirectory(), "temp");
         protected string CurrentDateTime { get => DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff"); }
 
+        public FileConversionControllerBase(ChannelWriter<FileConvertedMessage> channel)
+        {
+            fileConverterWriter = channel;
+        }
+
+        // Load files from request
         protected async Task<string> LoadFileToDirAsync(string dirPath, IFormFile file)
         {
             string filePath = Path.Combine(dirPath, file.FileName);
@@ -38,6 +42,8 @@ namespace FileConversionServer.Controllers
 
             return filePaths;
         }
+        
+        // Files to zip
         protected async Task<string> FilesToZipAsync(string dirPath, List<string> filePaths, string zipFileName = "result.zip")
         {
             var outputFilePath = Path.Combine(dirPath, zipFileName);
@@ -81,11 +87,13 @@ namespace FileConversionServer.Controllers
             }
         }
 
-        public FileConversionControllerBase(ChannelWriter<FileConvertedMessage> channel) 
+        // Send message to channel
+        protected async Task FileConvertedMessageWriteAsync(string dirPath)
         {
-            fileConverterWriter = channel;
+            await fileConverterWriter.WriteAsync(new FileConvertedMessage(dirPath));
         }
 
+        // Extension check
         protected bool IsCorrectExtension(IFormFileCollection files, IEnumerable<string> possibleExtensions)
         {
             foreach (var file in files)
@@ -100,98 +108,7 @@ namespace FileConversionServer.Controllers
             return possibleExtensions.Contains(Path.GetExtension(file.FileName).ToLower());
         }
 
-        protected async Task<IResult> ConvertFiles(IFormFileCollection files, string method, string officeConverter = "")
-        {
-            // Choose converter
-            Func<string, string, Task> Convert = null;
-            var inputExtensions = new List<string>();
-            var outputExtension = "";
-
-            switch (method)
-            {
-                case "JpgToPng":
-                    Convert = ImageConverter.JpgFileToPngFileAsync;
-                    inputExtensions.Add(".jpg");
-                    inputExtensions.Add(".jpeg");
-                    outputExtension = ".png";
-                    break;
-                case "PngToJpg":
-                    Convert = ImageConverter.PngFileToJpgFileAsync;
-                    inputExtensions.Add(".png");
-                    outputExtension = ".jpg";
-                    break;
-                case "wordToPdf":
-                    if (officeConverter.ToLower() == "msoffice")
-                        Convert = MSOfficeConverter.DocxFileToPdfFileAsync;
-                    else if (officeConverter.ToLower() == "libreoffice")
-                        Convert = LibreOfficeConverter.DocxFileToPdfFileAsync;
-                    inputExtensions.Add(".docx");
-                    inputExtensions.Add(".doc");
-                    outputExtension = ".pdf";
-                    break;
-                case "pdfToWord":
-                    if (officeConverter.ToLower() == "msoffice")
-                        Convert = MSOfficeConverter.PdfFileToDocxFileAsync;
-                    else if (officeConverter.ToLower() == "libreoffice")
-                        Convert = LibreOfficeConverter.PdfFileToDocxFileAsync;
-                    inputExtensions.Add(".pdf");
-                    outputExtension = ".docx";
-                    break;
-                case "pptxToPdf":
-                    if (officeConverter.ToLower() == "msoffice")
-                        Convert = MSOfficeConverter.PptxFileToPdfFileAsync;
-                    else if (officeConverter.ToLower() == "libreoffice")
-                        Convert = LibreOfficeConverter.PptxFileToPdfFileAsync;
-                    inputExtensions.Add(".pptx");
-                    inputExtensions.Add(".ppt");
-                    outputExtension = ".pdf";
-                    break;
-                default:
-                    return Results.BadRequest("Unknown method");
-            }
-
-            // Check office converter
-            if (officeConverter.ToLower() != "msoffice" && officeConverter.ToLower() != "libreoffice" && officeConverter.ToLower() != "")
-                return Results.BadRequest("Wrong office converter");
-
-            // Check extension
-            foreach (var file in files)
-            {
-                if (!inputExtensions.Contains(Path.GetExtension(file.FileName).ToLower()))
-                    return Results.BadRequest("Wrong extension");
-            }
-
-            // Load files to request directory
-            string requestDir = Path.Combine(filesDir, CurrentDateTime);
-            Directory.CreateDirectory(requestDir);
-            var filePaths = await LoadFilesToDirAsync(requestDir, files);
-
-            // Convert
-            var outputFilePath = "";
-
-            foreach (var filePath in filePaths)
-            {
-                outputFilePath = Path.ChangeExtension(filePath, outputExtension);
-                await Convert(filePath, outputFilePath);
-            }
-
-            // Put in zip
-            if (files.Count > 1)
-            {
-                outputFilePath = await FilesToZipAsync(requestDir, filePaths.Select(p => Path.ChangeExtension(p, outputExtension)).ToList());
-            }
-
-            var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
-            await FileConvertedMessageWriteAsync(requestDir);
-
-            return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
-        }
-
-        protected async Task FileConvertedMessageWriteAsync(string dirPath)
-        {
-            await fileConverterWriter.WriteAsync(new FileConvertedMessage(dirPath));
-        }
-
+        // IFormFile(s) to bytes
         protected async Task<byte[]> FormFileToBytesAsync(IFormFile file)
         {
             using var stream = new MemoryStream();
@@ -199,7 +116,6 @@ namespace FileConversionServer.Controllers
 
             return stream.ToArray();
         }
-
         protected async Task<IEnumerable<byte[]>> FormFileCollectionToBytesAsync(IFormFileCollection files)
         {
             var tasks = files.Select(file => FormFileToBytesAsync(file));
