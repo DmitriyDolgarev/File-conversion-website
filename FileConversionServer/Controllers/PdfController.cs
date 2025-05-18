@@ -1,5 +1,7 @@
-﻿using FileConverterLib.PDF;
+﻿using FileConversionServer.Services;
+using FileConverterLib.PDF;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Channels;
 
 namespace FileConversionServer.Controllers
 {
@@ -7,6 +9,10 @@ namespace FileConversionServer.Controllers
     [Route("api/pdf")]
     public class PdfController : FileConversionControllerBase
     {
+        public PdfController(ChannelWriter<FileConvertedMessage> channel) : base(channel)
+        {
+        }
+
         [HttpPost("merge")]
         public async Task<IResult> Merge(IFormFileCollection files)
         {
@@ -27,6 +33,8 @@ namespace FileConversionServer.Controllers
             await Task.Run(() => PDFConverter.MergePDFs(filePaths.ToArray(), outputFileName));
 
             var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFileName);
+            await FileConvertedMessageWriteAsync(requestDir);
+
             return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFileName));
         }
 
@@ -51,6 +59,8 @@ namespace FileConversionServer.Controllers
             var outputFilePath = await FilesToZip(requestDir, new List<string> { outputFileName1, outputFileName2 });
 
             var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
+            await FileConvertedMessageWriteAsync(requestDir);
+
             return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
         }
 
@@ -71,6 +81,8 @@ namespace FileConversionServer.Controllers
             await Task.Run(() => PDFConverter.PdfFileToJpgFiles(filePath, outputFilePath, true));
 
             var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
+            await FileConvertedMessageWriteAsync(requestDir);
+
             return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
         }
 
@@ -94,6 +106,8 @@ namespace FileConversionServer.Controllers
             await Task.Run(() => PDFConverter.JpgFilesToPdfFile(filePaths.ToArray(), outputFilePath));
 
             var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
+            await FileConvertedMessageWriteAsync(requestDir);
+
             return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
         }
         

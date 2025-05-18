@@ -1,17 +1,21 @@
-﻿using FileConverterLib.Images;
+﻿using FileConversionServer.Services;
+using FileConverterLib.Images;
 using FileConverterLib.LibreOffice;
 using FileConverterLib.MSOffice;
 using Microsoft.AspNetCore.Mvc;
 using System.IO.Compression;
+using System.Threading.Channels;
 
 namespace FileConversionServer.Controllers
 {
     public abstract class FileConversionControllerBase : ControllerBase
     {
-        protected static string filesDir = Path.Combine(Directory.GetCurrentDirectory(), "temp");
-        protected static string CurrentDateTime { get => DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff"); }
+        private ChannelWriter<FileConvertedMessage> fileConverterWriter;
 
-        protected static async Task<string> LoadFileToDirAsync(string dirPath, IFormFile file)
+        protected string filesDir = Path.Combine(Directory.GetCurrentDirectory(), "temp");
+        protected string CurrentDateTime { get => DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff"); }
+
+        protected async Task<string> LoadFileToDirAsync(string dirPath, IFormFile file)
         {
             string filePath = Path.Combine(dirPath, file.FileName);
             using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -20,7 +24,7 @@ namespace FileConversionServer.Controllers
             }
             return filePath;
         }
-        protected static async Task<List<string>> LoadFilesToDirAsync(string dirPath, IFormFileCollection files)
+        protected async Task<List<string>> LoadFilesToDirAsync(string dirPath, IFormFileCollection files)
         {
             var filePaths = new List<string>();
 
@@ -32,7 +36,7 @@ namespace FileConversionServer.Controllers
 
             return filePaths;
         }
-        protected static async Task<string> FilesToZip(string dirPath, List<string> filePaths, string zipFileName = "result.zip")
+        protected async Task<string> FilesToZip(string dirPath, List<string> filePaths, string zipFileName = "result.zip")
         {
             var outputFilePath = Path.Combine(dirPath, zipFileName);
 
@@ -53,7 +57,12 @@ namespace FileConversionServer.Controllers
             return outputFilePath;
         }
 
-        protected static async Task<IResult> ConvertFiles(IFormFileCollection files, string method, string officeConverter = "")
+        public FileConversionControllerBase(ChannelWriter<FileConvertedMessage> channel) 
+        {
+            fileConverterWriter = channel;
+        }
+
+        protected async Task<IResult> ConvertFiles(IFormFileCollection files, string method, string officeConverter = "")
         {
             // Choose converter
             Action<string, string>? Convert = null;
@@ -135,7 +144,14 @@ namespace FileConversionServer.Controllers
             }
 
             var outputFileBytes = await System.IO.File.ReadAllBytesAsync(outputFilePath);
+            await FileConvertedMessageWriteAsync(requestDir);
+
             return Results.File(outputFileBytes, "application/octet-stream", Path.GetFileName(outputFilePath));
+        }
+
+        protected async Task FileConvertedMessageWriteAsync(string dirPath)
+        {
+            await fileConverterWriter.WriteAsync(new FileConvertedMessage(dirPath));
         }
     }
 }

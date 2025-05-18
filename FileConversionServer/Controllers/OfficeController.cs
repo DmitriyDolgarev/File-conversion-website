@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FileConversionServer.Services;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Channels;
 
 namespace FileConversionServer.Controllers
 {
@@ -6,6 +8,10 @@ namespace FileConversionServer.Controllers
     [Route("/api/office")]
     public class OfficeController : FileConversionControllerBase
     {
+        public OfficeController(ChannelWriter<FileConvertedMessage> channel) : base(channel)
+        {
+        }
+
         [HttpPost("wordToPdf")]
         public async Task<IResult> WordToPdf(string officeConverter, IFormFileCollection files)
         {

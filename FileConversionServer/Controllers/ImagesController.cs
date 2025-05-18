@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FileConversionServer.Services;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Channels;
 
 namespace FileConversionServer.Controllers
 {
@@ -6,6 +8,10 @@ namespace FileConversionServer.Controllers
     [Route("/api/images")]
     public class ImagesController : FileConversionControllerBase
     {
+        public ImagesController(ChannelWriter<FileConvertedMessage> channel) : base(channel)
+        {
+        }
+
         [HttpPost("pngToJpg")]
         public async Task<IResult> PngToJpg(IFormFileCollection files)
         {

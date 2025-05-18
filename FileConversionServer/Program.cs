@@ -1,4 +1,6 @@
-﻿using FileConverterLib.LibreOffice;
+﻿using FileConversionServer.Services;
+using FileConverterLib.LibreOffice;
+using System.Threading.Channels;
 
 namespace FileConversionServer
 {
@@ -7,12 +9,21 @@ namespace FileConversionServer
         private const string sofficePath = @"C:\Program Files\LibreOffice\program";
         private static string filesDir = Path.Combine(Directory.GetCurrentDirectory(), "temp");
 
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
+
+            // Сообщение о том, что конвертация завершилась
+            var fileConvertedMessageChannel = Channel.CreateUnbounded<FileConvertedMessage>();
+            builder.Services.AddSingleton(fileConvertedMessageChannel);
+            builder.Services.AddSingleton(fileConvertedMessageChannel.Reader);
+            builder.Services.AddSingleton(fileConvertedMessageChannel.Writer);
+
+            // Очистка файлов раз в какое-то время
+            builder.Services.AddHostedService<FilesCleanupService>();
 
             var app = builder.Build();
 
