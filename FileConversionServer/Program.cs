@@ -40,7 +40,7 @@ namespace FileConversionServer
             }
 
             app.UseHttpsRedirection();
-            app.UseAuthorization(); // можно выключить
+            app.UseAuthorization(); // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             //app.UseAntiforgery();
 
             LibreOfficeConverter.sofficePath = sofficePath;
@@ -64,7 +64,7 @@ namespace FileConversionServer
             app.MapPost("/api/images/pngToJpg", async (IFormFileCollection files) => 
             {
                 return await ConvertFiles(files, "PngToJpg");
-            }).WithTags("Images");
+            }).DisableAntiforgery().WithTags("Images");
             app.MapPost("/api/images/jpgToPng", async (IFormFileCollection files) => 
             {
                 return await ConvertFiles(files, "JpgToPng");
@@ -302,10 +302,10 @@ namespace FileConversionServer
         public int PageSplitFrom { get; set; }
         public IFormFile File { get; set; }
 
-        public SplitPdfRequestData(int pageSplitFrom, IFormFile pdfFile)
+        public SplitPdfRequestData(int pageSplitFrom, IFormFile file)
         {
             PageSplitFrom = pageSplitFrom;
-            File = pdfFile;
+            File = file;
         }
     }
 }

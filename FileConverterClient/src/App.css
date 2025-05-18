@@ -4,3 +4,32 @@
   padding: 0;
 }
 
+.active-button {
+  background-color: var(--color-fc-orange);
+  cursor: pointer;
+  border-radius: 0.5rem; 
+  color: white;
+  width: 13.75rem; 
+  height: 3.25rem; 
+  margin: 2.5rem 1.25rem; 
+  font-weight: 700; 
+  font-size: 1.125rem; 
+  line-height: 1.75rem;
+
+  &:hover {
+    background-color: color-mix(in oklab, var(--color-fc-orange), transparent 20%);
+  }
+}
+
+.passive-button {
+  background-color: var(--color-fc-gray); /* Используем CSS-переменную */
+  cursor: pointer;
+  border-radius: 0.5rem; /* Эквивалент rounded-lg */
+  color: white;
+  width: 13.75rem; /* w-55 (55 * 0.25rem = 13.75rem) */
+  height: 3.25rem; /* h-13 (13 * 0.25rem = 3.25rem) */
+  margin: 2.5rem 1.25rem; /* my-10 mx-5 */
+  font-weight: 700; /* font-bold */
+  font-size: 1.125rem; /* text-lg */
+  line-height: 1.75rem; /* рекомендуемое для text-lg */
+}
