@@ -6,7 +6,6 @@ namespace FileConversionServer
 {
     public class Program
     {
-        private const string sofficePath = @"C:\Program Files\LibreOffice\program";
         private static string filesDir = Path.Combine(Directory.GetCurrentDirectory(), "temp");
 
         public static void Main(string[] args)
@@ -39,8 +38,6 @@ namespace FileConversionServer
 
             app.UseHttpsRedirection();
             app.MapControllers();
-
-            LibreOfficeConverter.sofficePath = sofficePath;
 
             // Create files dir if not exist
             if (!Directory.Exists(filesDir))

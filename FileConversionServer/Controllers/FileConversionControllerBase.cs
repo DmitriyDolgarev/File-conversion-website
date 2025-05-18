@@ -10,9 +10,9 @@ namespace FileConversionServer.Controllers
 {
     public abstract class FileConversionControllerBase : ControllerBase
     {
-        private ChannelWriter<FileConvertedMessage> fileConverterWriter;
+        private readonly ChannelWriter<FileConvertedMessage> fileConverterWriter;
 
-        protected string filesDir = Path.Combine(Directory.GetCurrentDirectory(), "temp");
+        protected readonly string filesDir = Path.Combine(Directory.GetCurrentDirectory(), "temp");
         protected string CurrentDateTime { get => DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff"); }
 
         protected async Task<string> LoadFileToDirAsync(string dirPath, IFormFile file)

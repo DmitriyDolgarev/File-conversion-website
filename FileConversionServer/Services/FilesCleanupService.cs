@@ -5,16 +5,18 @@ namespace FileConversionServer.Services
 {
     public class FilesCleanupService : BackgroundService
     {
-        private ILogger<FilesCleanupService> logger;
-        private ChannelReader<FileConvertedMessage> fileConvertedReader;
+        private readonly ILogger<FilesCleanupService> logger;
+        private readonly ChannelReader<FileConvertedMessage> fileConvertedReader;
 
-        private PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromMinutes(10));
-        private ConcurrentQueue<FileConvertedMessage> foldersToDelete = new();
+        private readonly int filesCleanupIntervalMinutes;
+        private readonly ConcurrentQueue<FileConvertedMessage> foldersToDelete = new();
 
-        public FilesCleanupService(ILogger<FilesCleanupService> logger, ChannelReader<FileConvertedMessage> channelReader)
+        public FilesCleanupService(ILogger<FilesCleanupService> logger, ChannelReader<FileConvertedMessage> channelReader, IConfiguration config)
         {
             this.logger = logger;
             fileConvertedReader = channelReader;
+
+            filesCleanupIntervalMinutes = config.GetValue<int>("FilesCleanupIntervalMinutes");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -43,6 +45,8 @@ namespace FileConversionServer.Services
         {
             try
             {
+                using var timer = new PeriodicTimer(TimeSpan.FromMinutes(filesCleanupIntervalMinutes));
+
                 while (await timer.WaitForNextTickAsync(stoppingToken))
                 {
                     int deletedDirsCounter = 0;
@@ -58,10 +62,6 @@ namespace FileConversionServer.Services
             }
             catch(OperationCanceledException e)
             {
-            }
-            finally
-            {
-                timer.Dispose();
             }
         }                
     }

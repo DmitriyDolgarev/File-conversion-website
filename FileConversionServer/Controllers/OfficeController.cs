@@ -1,4 +1,5 @@
 ﻿using FileConversionServer.Services;
+using FileConverterLib.LibreOffice;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Channels;
 
@@ -8,24 +9,28 @@ namespace FileConversionServer.Controllers
     [Route("/api/office")]
     public class OfficeController : FileConversionControllerBase
     {
-        public OfficeController(ChannelWriter<FileConvertedMessage> channel) : base(channel)
+        private readonly string officeConverter;
+
+        public OfficeController(ChannelWriter<FileConvertedMessage> channel, IConfiguration config) : base(channel)
         {
+            LibreOfficeConverter.sofficePath = config.GetValue<string>("SofficePath")!;
+            officeConverter = config.GetValue<string>("OfficeConverter")!;
         }
 
         [HttpPost("wordToPdf")]
-        public async Task<IResult> WordToPdf(string officeConverter, IFormFileCollection files)
+        public async Task<IResult> WordToPdf(IFormFileCollection files)
         {
             return await ConvertFiles(files, "wordToPdf", officeConverter);
         }
 
         [HttpPost("pdfToWord")]
-        public async Task<IResult> PdfToWord(string officeConverter, IFormFileCollection files)
+        public async Task<IResult> PdfToWord(IFormFileCollection files)
         {
             return await ConvertFiles(files, "pdfToWord", officeConverter);
         }
 
         [HttpPost("pptxToPdf")]
-        public async Task<IResult> PptxToWord(string officeConverter, IFormFileCollection files)
+        public async Task<IResult> PptxToWord(IFormFileCollection files)
         {
             return await ConvertFiles(files, "pptxToPdf", officeConverter);
         }
