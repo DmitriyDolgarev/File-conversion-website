@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import './App.css'
 import axios from 'axios'
-import MySelect from './MySelect/MySelect';
-import jpgfile from './images/jpgfile.png'
-import downloadfile from './images/downloadIcon.png'
 import { useRef } from 'react';
+import downloadfile from './images/downloadIcon.svg'
+import MySelect from './MySelect/MySelect';
+import File from './File/File'
+
+
 
 function App() {
 
@@ -13,6 +15,12 @@ function App() {
 
 
   const fileInputRef = useRef(null);
+
+   const handleDelete = (filename) => {
+    setFiles(files.filter(file => file.name !== filename));
+  };
+
+
 
   const handleClick = () => {
     fileInputRef.current.click();
@@ -24,7 +32,7 @@ function App() {
       setFiles([...e.target.files])
     }
   }
-
+  
 
   const sendFiles = async (e) =>{
 
@@ -70,17 +78,19 @@ function App() {
       link.click();
   }
 
+
   return (
     <>
+  {console.log(files)}
     <header className='bg-fc-orange text-white h-20 text-4xl font-bold py-4 pl-16'>
       File Converter
     </header>
     <div className='flex flex-row my-20'>
-      <div className=' flex-3/5 bg-fc-light-gray rounded-xl p-5 h-120 mx-20'>
-        <div className='rounded-xl border-1 border-dashed border-fc-dark-gray h-110 p-20'>
+      <div className=' flex-3/5 bg-fc-light-gray rounded-xl p-5 h-120 mx-20 '>
+        <div className='rounded-xl border-1 border-dashed border-fc-dark-gray h-110 p-3'>
           {files.length==0 ? 
             <form className='form'>
-              <img className='h-15 w-15 mx-auto mt-25 mb-3 cursor-pointer' onClick={handleClick} src={downloadfile}></img>
+              <img className='h-15 w-15 mx-auto mt-35 mb-3 cursor-pointer' onClick={handleClick} src={downloadfile}></img>
               <div className='text-center text-s text-fc-dark-gray'>Перетащите файл(ы) в эту область или
                 <br/> нажмите&nbsp;
                 <label className='cursor-pointer text-fc-orange underline'>сюда
@@ -96,7 +106,15 @@ function App() {
               </div>                 
             </form>
           :
-          ""
+            <div className="container h-106 overflow-y-auto">
+              <div className="grid grid-cols-5 gap-2">
+                {files.map((file, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <File filename={file.name} onDelete={handleDelete}></File>
+                  </div>
+                ))}
+              </div>
+            </div>
           } 
         </div>
       </div>
