@@ -38,6 +38,7 @@ namespace FileConversionServer
 
             app.UseHttpsRedirection();
             app.MapControllers();
+            app.UseStaticFiles();
 
             // Create files dir if not exist
             if (!Directory.Exists(filesDir))

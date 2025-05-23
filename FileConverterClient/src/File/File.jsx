@@ -17,7 +17,10 @@ const getFileInfo = (fileName) =>{
       case 'png':
         icon = pngSvg;
         break;
-      case 'jpg' || 'jpeg':
+      case 'jpg':
+        icon = jpgSvg;
+        break;
+      case 'jpeg':
         icon = jpgSvg;
         break;
       case 'pdf':
@@ -26,9 +29,12 @@ const getFileInfo = (fileName) =>{
       case 'pptx':
         icon = pptxSvg;
         break;
-      case 'doc' || 'docx':
+      case 'doc':
         icon = docSvg;
         break;
+      case 'docx':
+        icon = docSvg;
+        break
       default:
         icon = fileSvg; 
     }

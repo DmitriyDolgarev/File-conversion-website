@@ -33,7 +33,7 @@ const conversionConfig = {
 
         {
             "conversionType": "word",
-            "api": "pdf/pdfToWord",
+            "api": "office/pdfToWord",
             "isArray": true,
             "additionalParams": []
                 
@@ -51,7 +51,7 @@ const conversionConfig = {
                 "additionalParams": [
                     {
                         "title": "Страница разделения",
-                        "property": "pageSplitFrom",
+                        "property": "SplitString",
                         "type": "string"
                     }
                 ]        
@@ -60,7 +60,7 @@ const conversionConfig = {
     "doc":[
         {
             "conversionType": "pdf",
-            "api": "/office/wordToPdf?officeConverter=msoffice",
+            "api": "office/wordToPdf",
             "isArray": true,
             "additionalParams": []
         }      
@@ -68,7 +68,7 @@ const conversionConfig = {
     "ppt":[
         {
             "conversionType": "pdf",
-            "api": "/office/pptxToPdf?officeConverter=msoffice",
+            "api": "office/pptxToPdf",
             "isArray": true,
             "additionalParams": []
         }    
