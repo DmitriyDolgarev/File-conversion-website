@@ -28,7 +28,7 @@ function App() {
     setFiles(files.filter(file => file.name !== filename));
   };
 
-  const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc' ,'jpg', 'jpeg', 'png', 'pptx'];
+  const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png', 'pptx'];
 
   const onDrop = useCallback(acceptedFiles => {
     if (acceptedFiles.length === 0) return;
@@ -87,28 +87,38 @@ function App() {
 
   const handlerChange = (e) => {
     e.preventDefault();
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFiles = Array.from(e.target.files);
+    if (e.target.files.length === 0) return;
 
-      // Если уже есть загруженные файлы — берем расширение первого из них,
-      // иначе расширение первого выбранного файла
-      const firstExt = files.length > 0
-        ? files[0].name.split('.').pop().toLowerCase()
-        : selectedFiles[0].name.split('.').pop().toLowerCase();
+    const selectedFiles = Array.from(e.target.files);
 
-      // Проверяем, что все выбранные файлы имеют такое же расширение
-      const allSameExt = selectedFiles.every(file =>
-        file.name.split('.').pop().toLowerCase() === firstExt
-      );
+    const invalidFiles = selectedFiles.some(file => {
+      const extension = file.name.split('.').pop().toLowerCase();
+      return !ALLOWED_EXTENSIONS.includes(extension)
+    });
 
-      if (!allSameExt) {
-        setIsError(true)
-        return;
-      }
-
-      // Если прошли проверку, добавляем файлы к состоянию
-      setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
+    if (invalidFiles) {
+      setIsError(true);
+      setIsTypeError(true)
+      return;
     }
+    // Если уже есть загруженные файлы — берем расширение первого из них,
+    // иначе расширение первого выбранного файла
+    const firstExt = files.length > 0
+      ? files[0].name.split('.').pop().toLowerCase()
+      : selectedFiles[0].name.split('.').pop().toLowerCase();
+
+    // Проверяем, что все выбранные файлы имеют такое же расширение
+    const allSameExt = selectedFiles.every(file =>
+      file.name.split('.').pop().toLowerCase() === firstExt
+    );
+
+    if (!allSameExt) {
+      setIsError(true)
+      return;
+    }
+
+    // Если прошли проверку, добавляем файлы к состоянию
+    setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
   }
 
 
