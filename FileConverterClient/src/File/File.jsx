@@ -5,6 +5,8 @@ import pdfSvg from '../images/pdf.svg';
 import jpgSvg from '../images/jpg.svg';
 import pptxSvg from '../images/pptx.svg';
 import docSvg from '../images/doc.svg';
+import docxSvg from '../images/docx.svg';
+import zipSvg from '../images/zip.svg'
 
 const getFileInfo = (fileName) =>{
     const parts = fileName.split('.');
@@ -33,14 +35,17 @@ const getFileInfo = (fileName) =>{
         icon = docSvg;
         break;
       case 'docx':
-        icon = docSvg;
-        break
+        icon = docxSvg;
+        break;
+      case 'zip':
+        icon = zipSvg;
+        break;
       default:
         icon = fileSvg; 
     }
 
     return {
-      name: name,
+      name: fileName,
       icon: icon
     };
 } 
@@ -48,6 +53,8 @@ const getFileInfo = (fileName) =>{
 function File(props) {
     const {name, icon} = getFileInfo(props.filename)
     
+    console.log(name)
+
     const handleDelete = (e) => {
       e.stopPropagation();
       props.onDelete(props.filename); 
@@ -55,11 +62,16 @@ function File(props) {
 
     return (
         <div>
-            <button onClick={handleDelete}>
-              <img className='w-4.5 relative left-16 top-3.5' src={delSvg}></img>
-            </button>
+          {
+           props.isDel ?
+              <button onClick={handleDelete}>
+                <img className='w-4.5 relative left-16 top-3.5' src={delSvg}></img>
+              </button>
+              :
+              null
+          }            
             <img className='w-20' src={icon}></img>
-            <div className="text-s text-fc-dark-gray text-center mt-2">{name.length > 8 ? name.substring(0,8)+'...' : name }</div>
+            <div className="w-20 text-s text-fc-dark-gray text-center mt-2">{name.length > 5 ? name.substring(0,5)+'..'+ name.substring(name.lastIndexOf('.')): name }</div>
         </div>
     )
 }

@@ -16,6 +16,7 @@ function App() {
   const [splitParam, setSplitParam] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [downLink, setDownLink] = useState(null)
+  const [resultFilename, setResultFilename] = useState("")
 
   const fileInputRef = useRef(null);
 
@@ -23,6 +24,16 @@ function App() {
     setFiles(files.filter(file => file.name !== filename));
   };
 
+
+  const toStart = () =>{
+    setFiles([]);
+    setSplitParam("")
+    setDownLink(null)
+  }
+
+  const downloadFile = () => {
+    downLink.click()
+  }
 
 
   const handleClick = () => {
@@ -65,6 +76,7 @@ function App() {
       }) 
 
       setSelectedOption(null)
+      setSplitParam("")
 
       const disposition = response.headers["content-disposition"];
       let fileName = "downloaded-file";
@@ -76,19 +88,20 @@ function App() {
         }
       }
       
+      console.log(fileName)
+      setResultFilename(fileName)
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
 
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", fileName);
-
+      document.body.appendChild(link);
       
-      //document.body.appendChild(link);
-      //link.click();
-      
+      setDownLink(link)
       setIsLoading(false)
   }
+
 
 
   return (
@@ -122,7 +135,7 @@ function App() {
               <div className="grid grid-cols-5 gap-2">
                 {files.map((file, index) => (
                   <div key={index} className="flex flex-col items-center">
-                    <File filename={file.name} onDelete={handleDelete}></File>
+                    <File filename={file.name} isDel= {true} onDelete={handleDelete}></File>
                   </div>
                 ))}
               </div>
@@ -132,29 +145,44 @@ function App() {
       </div>
       <div className='flex-2/5 text-fc-gray my-auto ml-20 text-lg'>
         {files.length>0 ? 
-        <div className='space-y-2 mt-30'>
+        <div className='space-y-2'>
           { !isLoading  ?
             <div>
-              <MySelect type = {files[0].name.split('.').pop()} selectedOption = {selectedOption} setSelectedOption={setSelectedOption}/>
-              {console.log(selectedOption)}
-              <div className={`my-15 flex items-center ${selectedOption?.conversionType === 'split' ? '' : 'invisible'}`}>
-                <span className="text-lg ml-1 mr-3 text-fc-dark-gray">Введите страницы:</span>
-                <input
-                  placeholder="1-3; 5, 9-7"
-                  className="bg-fc-light-gray focus:outline-none text-lg py-1 pl-2 ml-1 rounded-lg border border-gray-300 w-35"
-                  onChange={(e) => setSplitParam(e.target.value.trim())}
-                  type="text"
-                  value={splitParam}
-                />
+              { downLink==null ?
+              <div className='mt-30'>
+                <MySelect type = {files[0].name.split('.').pop()} selectedOption = {selectedOption} setSelectedOption={setSelectedOption}/>
+                {console.log(selectedOption)}
+                <div className={`my-15 flex items-center ${selectedOption?.conversionType === 'split' ? '' : 'invisible'}`}>
+                  <span className="text-lg ml-1 mr-3 text-fc-dark-gray">Введите страницы:</span>
+                  <input
+                    placeholder="1-3; 5, 9-7"
+                    className="bg-fc-light-gray focus:outline-none text-lg py-1 pl-2 ml-1 rounded-lg border border-gray-300 w-35"
+                    onChange={(e) => setSplitParam(e.target.value.trim())}
+                    type="text"
+                    value={splitParam}
+                  />
+                </div>
               </div>
+              :
+              <div className='mt-20'>
+                <div className='mx-11 mb-10 text-fc-dark-gray text-base'>Файл успешно сконвертирован!</div>
+                  <div className='mx-30 mt-10 cursor-pointer' onClick={downloadFile}>
+                    <File filename={resultFilename} isDel={false}></File>
+                  </div>
+                <div className='mt-10 mx-12 mb-6 text-fc-dark-gray text-base'>нажмите&nbsp;
+                  <label className='cursor-pointer text-fc-orange underline' onClick={downloadFile}>здесь
+                  </label>
+                  , чтобы скачать
+                </div>
+              </div>
+            }
             </div>
             :
-            <div className='mt-36 mb-14 '>
+            <div className='mt-36 mb-14'>
               <img src={sync} className='mx-30 h-20 spin-animation' ></img>
               <div className='mx-25 mt-6 text-fc-gray'>Конвертируем..</div>
             </div>
           }
-          
         </div> 
         : 
         <div className='mt-16 ml-7'>
@@ -173,8 +201,12 @@ function App() {
           </ul> 
         </div> 
         }  
+        { downLink == null ?
         <button onClick={sendFiles} className={files.length==0 || isLoading ? 'passive-button': 'active-button'}>Конвертировать</button>
-      </div>
+        :
+        <button onClick={toStart} className='active-button'>В начало</button>
+        }
+        </div>
     </div>
     </>      
   )
