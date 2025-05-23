@@ -12,7 +12,7 @@ function App() {
 
   const [files, setFiles] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
-
+  const [splitParam, setSplitParam] = useState("")
 
   const fileInputRef = useRef(null);
 
@@ -36,6 +36,8 @@ function App() {
 
   const sendFiles = async (e) =>{
 
+
+
     const requestBody =  {}
 
     if (selectedOption.isArray){
@@ -46,7 +48,7 @@ function App() {
     }
 
     selectedOption.additionalParams.forEach(param => {
-      requestBody[param.property] = 2
+      requestBody[param.property] = splitParam
     });
 
     const response = await axios.post(`/api/${selectedOption.api}`,
@@ -90,7 +92,7 @@ function App() {
         <div className='rounded-xl border-1 border-dashed border-fc-dark-gray h-110 p-3'>
           {files.length==0 ? 
             <form className='form'>
-              <img className='h-15 w-15 mx-auto mt-35 mb-3 cursor-pointer' onClick={handleClick} src={downloadfile}></img>
+              <img className='h-15 w-15 mx-auto mt-40 mb-3 cursor-pointer' onClick={handleClick} src={downloadfile}></img>
               <div className='text-center text-s text-fc-dark-gray'>Перетащите файл(ы) в эту область или
                 <br/> нажмите&nbsp;
                 <label className='cursor-pointer text-fc-orange underline'>сюда
@@ -120,11 +122,22 @@ function App() {
       </div>
       <div className='flex-2/5 text-fc-gray my-auto ml-20 text-lg'>
         {files.length>0 ? 
-        <div className='space-y-2 my-27'>
+        <div className='space-y-2 mt-30'>
           <MySelect type = {files[0].name.split('.').pop()} selectedOption = {selectedOption} setSelectedOption={setSelectedOption}/>
-        </div>
+          {console.log(selectedOption)}
+          <div className={`my-15 flex items-center ${selectedOption?.conversionType === 'split' ? '' : 'invisible'}`}>
+            <span className="text-lg ml-1 mr-3 text-fc-dark-gray">Введите страницы:</span>
+            <input
+              placeholder="1-3; 5, 9-7"
+              className="bg-fc-light-gray focus:outline-none text-lg py-1 pl-2 ml-1 rounded-lg border border-gray-300 w-35"
+              onChange={(e) => setSplitParam(e.target.value.trim())}
+              type="text"
+              value={splitParam}
+            />
+          </div>
+          </div> 
         : 
-        <div>
+        <div className='mt-16 ml-7'>
           <ul className='list-disc'>
                 File Converter предоставляет<br/>
                 возможность  конвертации:

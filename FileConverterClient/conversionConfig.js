@@ -52,7 +52,7 @@ const conversionConfig = {
                     {
                         "title": "Страница разделения",
                         "property": "pageSplitFrom",
-                        "type": "number"
+                        "type": "string"
                     }
                 ]        
         }

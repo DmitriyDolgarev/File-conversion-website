@@ -9,11 +9,11 @@
   cursor: pointer;
   border-radius: 0.5rem; 
   color: white;
-  width: 13.75rem; 
+  width: 15.75rem; 
   height: 3.25rem; 
-  margin: 2.5rem 1.25rem; 
-  font-weight: 700; 
-  font-size: 1.125rem; 
+  margin: 2.5rem 2.5rem; 
+  font-weight: 647; 
+  font-size: 1.225rem; 
   line-height: 1.75rem;
 
   &:hover {
@@ -26,11 +26,11 @@
   cursor: pointer;
   color: white;
   border-radius: 0.5rem; 
-  width: 13.75rem; 
+  width: 15.75rem; 
   height: 3.25rem; 
-  margin: 2.5rem 1.25rem; 
-  font-weight: 700; 
-  font-size: 1.125rem; 
+  margin: 2.5rem 2.5rem; 
+  font-weight: 647; 
+  font-size: 1.225rem; 
   line-height: 1.75rem; 
 }
 
