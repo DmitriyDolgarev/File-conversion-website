@@ -65,12 +65,12 @@ function File(props) {
           {
            props.isDel ?
               <button onClick={handleDelete}>
-                <img className='w-4.5 relative left-16 top-3.5' src={delSvg}></img>
+                <img className='w-4.5 relative left-16 top-3.5' draggable={false} src={delSvg}></img>
               </button>
               :
               null
           }            
-            <img className='w-20' src={icon}></img>
+            <img className='w-20' src={icon} draggable={false}></img>
             <div className="w-20 text-s text-fc-dark-gray text-center mt-2">{name.length > 5 ? name.substring(0,5)+'..'+ name.substring(name.lastIndexOf('.')): name }</div>
         </div>
     )
