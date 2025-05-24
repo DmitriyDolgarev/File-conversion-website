@@ -12,7 +12,7 @@
   color: white;
   width: 15.75rem; 
   height: 3.25rem; 
-  margin: 2.5rem 2.5rem;
+  margin: 1.5rem 2.3rem;
   font-weight: 647; 
   font-size: 1.225rem; 
   line-height: 1.75rem;
@@ -30,24 +30,12 @@
   border-radius: 0.5rem; 
   width: 15.75rem; 
   height: 3.25rem; 
-  margin: 2.5rem 2.5rem;
+  margin: 1.5rem 2.3rem;
   font-weight: 647; 
   font-size: 1.225rem; 
   line-height: 1.75rem; 
 }
 
-
-@media (min-width: 640px) { /* sm */
-  .active-button {
-    margin: 2.5rem 0.4rem;
-  }
-}
-
-@media (min-width: 1024px) { /* lg */
-  .active-button {
-    margin: 2.5rem 2.5rem;
-  }
-}
 
 
 

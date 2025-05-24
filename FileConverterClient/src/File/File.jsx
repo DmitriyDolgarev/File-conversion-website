@@ -53,7 +53,6 @@ const getFileInfo = (fileName) =>{
 function File(props) {
     const {name, icon} = getFileInfo(props.filename)
     
-    console.log(name)
 
     const handleDelete = (e) => {
       e.stopPropagation();

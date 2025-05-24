@@ -1,6 +1,6 @@
 function Instruction(props) {
     return (
-        <div className='lg:mt-5 lg:mb-10 ml-10'>
+        <div className='text-base lg:text-lg'>
             <ul className='list-disc'>
                 File Converter предоставляет<br />
                 возможность  конвертации:

@@ -14,6 +14,7 @@ function MySelect(props) {
             label: props.selectedOption.title || props.selectedOption.conversionType
             } : null}
             onChange={(selected) => {
+            props.setIsError(false)
             const selectedOption = conversionConfig[props.type]
                 .find(option => option.conversionType === selected.value);
             props.setSelectedOption(selectedOption);
