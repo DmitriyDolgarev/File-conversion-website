@@ -18,10 +18,12 @@ function MySelect(props) {
                 .find(option => option.conversionType === selected.value);
             props.setSelectedOption(selectedOption);
             }}
-            options={conversionConfig[props.type].map(option => ({
-            value: option.conversionType,
-            label: option.conversionType
-            }))}
+            options={conversionConfig[props.type]
+                .filter(option => option.isArray || (props.fileCount == 1 && !option.isArray))
+                .map(option => ({
+                    value: option.conversionType,
+                    label: option.title || option.conversionType
+                }))}
             styles={{
             dropdownIndicator: (provided, state) => ({
                 ...provided,
@@ -62,9 +64,9 @@ function MySelect(props) {
             ...theme,
             colors: {
                 ...theme.colors,
-                primary: '#e5e7eb', // focus border color
-                primary25: '#f3f4f6', // option hover color
-                primary50: '#e5e7eb', // option active color
+                primary: '#e5e7eb', 
+                primary25: '#f3f4f6', 
+                primary50: '#e5e7eb', 
             },
             })}               
         /> 
