@@ -11,7 +11,7 @@ function MySelect(props) {
             placeholder="Выберите вариант"
             value={props.selectedOption ? { 
             value: props.selectedOption.conversionType, 
-            label: props.selectedOption.conversionType 
+            label: props.selectedOption.title || props.selectedOption.conversionType
             } : null}
             onChange={(selected) => {
             const selectedOption = conversionConfig[props.type]

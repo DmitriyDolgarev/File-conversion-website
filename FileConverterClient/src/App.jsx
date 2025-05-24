@@ -33,6 +33,10 @@ function App() {
   const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png', 'pptx'];
 
   const onDrop = useCallback(acceptedFiles => {
+
+    setIsError(false)
+    setIsTypeError(false)
+
     if (acceptedFiles.length === 0) return;
 
     const invalidFiles = acceptedFiles.some(file => {
@@ -64,7 +68,7 @@ function App() {
     setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
   }, [files])
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop,  disabled: downLink !== null })
 
   const [draggedIndex, setDraggedIndex] = useState(null);
 
@@ -83,10 +87,16 @@ function App() {
 
 
   const handleClick = () => {
+    if (downLink !== null) return;
     fileInputRef.current.click();
   };
 
   const handlerChange = (e) => {
+    if (downLink !== null) return;
+
+    setIsError(false)
+    setIsTypeError(false)
+
     e.preventDefault();
     if (e.target.files.length === 0) return;
 
@@ -189,7 +199,7 @@ function App() {
         <div className='flex-3/5 h-fit'>
           <div className='rounded-xl p-5 h-120 sm:mx-5  lg:mx-20 bg-fc-light-gray'>
             <div {...getRootProps()} className='rounded-xl border-1 border-dashed border-fc-dark-gray h-110 p-3'>
-              {files.length == 0 ?
+              {files.length == 0  ?
                 <div>
                   <img className={` ${isDragActive ? 'animate-bounce' : ''}  h-15 w-15 mx-auto mt-40 mb-3 cursor-pointer`} onClick={handleClick} src={downloadfile}></img>
                   <div className='text-center text-s text-fc-dark-gray'>Перетащите файл(ы) в эту область или
@@ -201,7 +211,7 @@ function App() {
                 </div>
                 :
                 <div className="container h-106 overflow-y-auto">
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
                     {files.map((file, index) => (
                       <div
                         key={file.name}
@@ -219,7 +229,7 @@ function App() {
                           setDraggedIndex(null);
                         }}
                       >
-                        <File filename={file.name} isDel={true} onDelete={handleDelete} />
+                        <File filename={file.name} isDel={downLink === null} onDelete={handleDelete} />
                       </div>
                     ))}
                   </div>
@@ -240,17 +250,17 @@ function App() {
           </div>
         </div>
 
-        <div className='flex flex-2/5 flex-col text-fc-gray my-auto lg:ml-20 ml-10 text-lg'>
-          <div className='order-2 lg:order-1'>
+        <div className='flex flex-2/5 flex-col text-fc-gray my-auto lg:ml-20 ml-3 text-lg'>
+          <div className={`${files.length>0 ? 'order-1': 'order-2'}  lg:order-1`}>
             {files.length > 0 ?
               <div className='space-y-2'>
                 {!isLoading ?
                   <div>
                     {downLink == null ?
-                      <div className='mt-30'>
+                      <div className='lg:mt-30'>
                         <MySelect type={files[0].name.split('.').pop()} fileCount={files.length} selectedOption={selectedOption} setSelectedOption={setSelectedOption} />
                         {console.log(selectedOption)}
-                        <div className={`my-15 flex items-center ${selectedOption?.conversionType === 'split' ? '' : 'invisible'}`}>
+                        <div className={`lg:my-15 my-10 flex items-center ${selectedOption?.conversionType === 'split' ? '' : 'invisible'}`}>
                           <span className="text-lg ml-1 mr-3 text-fc-dark-gray">Введите страницы:</span>
                           <input
                             placeholder="1-3; 5, 9-7"
@@ -262,7 +272,7 @@ function App() {
                         </div>
                       </div>
                       :
-                      <div className='mt-20'>
+                      <div className='lg:mt-20'>
                         <div className='mx-11 mb-10 text-fc-dark-gray text-base'>Файл успешно сконвертирован!</div>
                         <div className='mx-30 mt-10 cursor-pointer' onClick={downloadFile}>
                           <File filename={resultFilename} isDel={false}></File>
@@ -286,7 +296,7 @@ function App() {
               <Instruction />
             }
           </div>
-          <div className='order-1 lg:order-2'>
+          <div className={`${files.length>0 ? 'order-2': 'order-1'}  lg:order-2`}>
             {downLink == null ?
               <button onClick={sendFiles} className={files.length == 0 || isLoading ? 'passive-button' : 'active-button'}>Конвертировать</button>
               :
