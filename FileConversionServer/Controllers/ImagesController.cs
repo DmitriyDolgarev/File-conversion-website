@@ -28,8 +28,6 @@ namespace FileConversionServer.Controllers
 
         private async Task<IResult> ConvertImages(IFormFileCollection files, Func<byte[], Task<byte[]>> Converter, IEnumerable<string> inputExtensions, string outputExtension)
         {
-            Console.WriteLine(files.ToList().Count);
-
             // Check extension
             if(!IsCorrectExtension(files, inputExtensions))
                 return Results.BadRequest("Wrong extension");
