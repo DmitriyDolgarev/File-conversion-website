@@ -25,7 +25,8 @@ namespace FileConversionServer
                         "http://79.141.77.14") // Deploy server
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowCredentials();
+                        .AllowCredentials()
+                        .WithExposedHeaders("Content-Disposition");
                 });
             });
 

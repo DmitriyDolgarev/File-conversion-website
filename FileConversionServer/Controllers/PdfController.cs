@@ -58,7 +58,7 @@ namespace FileConversionServer.Controllers
         [HttpPost("jpgToPdf")]
         public async Task<IResult> JpgToPdf(IFormFileCollection files)
         {
-            if (!IsCorrectExtension(files, [".pdf"]))
+            if (!IsCorrectExtension(files, [".jpg", ".jpeg"]))
                 return Results.BadRequest("Wrong extension");
 
             var inputBytes = await FormFileCollectionToBytesAsync(files);
