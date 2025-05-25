@@ -15,6 +15,20 @@ namespace FileConversionServer
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 
+            // CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins(
+                        "http://localhost:5173", // Vite dev server
+                        "http://79.141.77.14") // Deploy server
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+
             // Сообщение о том, что конвертация завершилась
             var fileConvertedMessageChannel = Channel.CreateUnbounded<FileConvertedMessage>();
             builder.Services.AddSingleton(fileConvertedMessageChannel);
@@ -25,6 +39,7 @@ namespace FileConversionServer
             builder.Services.AddHostedService<FilesCleanupService>();
 
             var app = builder.Build();
+            app.UseCors("AllowFrontend");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -47,6 +62,8 @@ namespace FileConversionServer
             // Clear files dir
             foreach (var dir in Directory.GetDirectories(filesDir))
                 Directory.Delete(dir, true);
+
+            app.MapGet("/", () => "Hello, World!");
 
             app.Run();
         }
