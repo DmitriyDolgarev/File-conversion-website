@@ -9,7 +9,7 @@ import MySelect from './MySelect/MySelect';
 import File from './File/File'
 import sync from './images/Synchronize.svg'
 import Instruction from './Instruction/Instruction';
-import Error from './Error/Error';
+import MyError from './MyError/MyError';
 
 
 
@@ -24,6 +24,8 @@ function App() {
   const [isStringError, setIsStringError] = useState(false)
   const [downLink, setDownLink] = useState(null)
   const [resultFilename, setResultFilename] = useState("")
+
+  const serverUrl = 'http://79.141.77.14:8080';
 
   const fileInputRef = useRef(null);
 
@@ -170,7 +172,7 @@ function App() {
       requestBody.append(param.property, splitParam)
     });
 
-    const response = await axios.post(`/api/${selectedOption.api}`,
+    const response = await axios.post(`${serverUrl}/api/${selectedOption.api}`,
       requestBody,
       {
         headers: {
@@ -184,11 +186,16 @@ function App() {
 
     const disposition = response.headers["content-disposition"];
     let fileName = "downloaded-file";
-    if (disposition && disposition.indexOf("attachment") !== -1) {
-      const matches = disposition.match("filename=(.+);");
-      if (matches != null && matches[1]) {
-        fileName = matches[1].replaceAll("\"", "");
+
+    if (disposition && disposition.includes("attachment")) {
+      const match = disposition.match(/filename\*?=(?:UTF-8''|")?([^";\n]+)/i);
+      if (match && match[1]) {
+        fileName = decodeURIComponent(match[1]);
+      } else {
+        throw new Error("Filename not found in disposition");
       }
+    } else {
+      throw new Error("No content-disposition header");
     }
 
     setResultFilename(fileName)
@@ -226,8 +233,8 @@ function App() {
                   </div>
                 </div>
                 :
-                <div className="container h-106 overflow-y-auto">
-                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+                <div className="container max-h-[300px] lg:max-h-[400px] overflow-y-auto">
+                  <div className="grid grid-cols-2 lg:grid-cols-5  gap-2">
                     {files.map((file, index) => (
                       <div
                         key={file.name}
@@ -262,7 +269,7 @@ function App() {
             </div>
           </div>
           <div className='h-10'>
-            <Error isError={isError} isTypeError={isTypeError} isStringError={isStringError} />
+            <MyError isError={isError} isTypeError={isTypeError} isStringError={isStringError} />
           </div>
         </div>
 

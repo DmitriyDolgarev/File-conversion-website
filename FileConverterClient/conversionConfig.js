@@ -27,7 +27,7 @@ const conversionConfig = {
         {
             "conversionType": "jpg",
             "api": "pdf/pdfToJpg",
-            "isArray": true,
+            "isArray": false,
             "additionalParams": []
         },
 
